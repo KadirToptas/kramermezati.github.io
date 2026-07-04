@@ -240,7 +240,7 @@
   <span class="lbl" title="Ses seviyesi">♪</span>
   <input type="range" id="vol" min="0" max="100" value="45" title="Ses seviyesi" aria-label="Ses seviyesi">
 </div>
-<audio id="bgm" loop preload="none" src="assets/theme.mp3"></audio>
+<audio id="bgm" loop preload="auto" src="assets/theme.mp3"></audio>
 
 <!-- ============ APP (arka planda hazır) ============ -->
 <div class="stage">
@@ -571,14 +571,15 @@ showCover();
 <script>
 (function(){
   const bgm=document.getElementById('bgm'), btn=document.getElementById('musicBtn'), vol=document.getElementById('vol');
-  let wantSound=true;
-  bgm.loop=true; bgm.volume=vol.value/100;
-  function icon(){ btn.textContent = wantSound ? '🔊' : '🔇'; }
-  bgm.muted=true; bgm.play().catch(()=>{});            // sessiz otomatik başlat (tarayıcı buna izin verir)
-  function unlock(){ if(wantSound){ bgm.muted=false; bgm.play().catch(()=>{}); } window.removeEventListener('pointerdown',unlock,true); window.removeEventListener('keydown',unlock,true); }
-  window.addEventListener('pointerdown',unlock,true); window.addEventListener('keydown',unlock,true);   // ilk etkileşimde sesi aç
-  btn.addEventListener('click',(e)=>{ e.stopPropagation(); wantSound=!wantSound; if(wantSound){ bgm.muted=false; bgm.play().catch(()=>{}); } else { bgm.muted=true; } icon(); });
-  vol.addEventListener('input',()=>{ bgm.volume=vol.value/100; if(wantSound){ bgm.muted=false; bgm.play().catch(()=>{}); } });
+  bgm.loop=true; bgm.muted=false; bgm.volume=vol.value/100;
+  let userOff=false;
+  function icon(){ btn.textContent = userOff ? '\u{1F507}' : '\u{1F50A}'; }
+  function startAnywhere(){ if(!userOff && bgm.paused){ bgm.play().catch(()=>{}); } }
+  document.addEventListener('pointerdown', startAnywhere, true);
+  document.addEventListener('touchstart', startAnywhere, true);
+  document.addEventListener('keydown', startAnywhere, true);
+  btn.addEventListener('click', function(e){ e.stopPropagation(); if(bgm.paused){ userOff=false; bgm.play().catch(()=>{}); } else { userOff=true; bgm.pause(); } icon(); });
+  vol.addEventListener('input', function(){ bgm.volume=vol.value/100; if(!userOff && bgm.paused){ bgm.play().catch(()=>{}); } });
   icon();
 })();
 </script>

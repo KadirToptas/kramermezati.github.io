@@ -571,16 +571,15 @@ showCover();
 <script>
 (function(){
   const bgm=document.getElementById('bgm'), btn=document.getElementById('musicBtn'), vol=document.getElementById('vol');
-  let userPaused=false;
-  bgm.volume = vol.value/100;
-  function refresh(){ btn.textContent = bgm.paused ? '🔈' : '🔊'; }
-  function play(){ bgm.play().then(refresh).catch(()=>{}); }
-  vol.addEventListener('input', ()=>{ bgm.volume=vol.value/100; if(bgm.paused && !userPaused && vol.value>0) play(); });
-  btn.addEventListener('click', ()=>{ if(bgm.paused){ userPaused=false; play(); } else { userPaused=true; bgm.pause(); refresh(); } });
-  bgm.addEventListener('play', refresh); bgm.addEventListener('pause', refresh);
-  function firstGesture(){ if(!userPaused) play(); window.removeEventListener('pointerdown', firstGesture); window.removeEventListener('keydown', firstGesture); }
-  window.addEventListener('pointerdown', firstGesture); window.addEventListener('keydown', firstGesture);
-  play(); refresh();
+  let wantSound=true;
+  bgm.loop=true; bgm.volume=vol.value/100;
+  function icon(){ btn.textContent = wantSound ? '🔊' : '🔇'; }
+  bgm.muted=true; bgm.play().catch(()=>{});            // sessiz otomatik başlat (tarayıcı buna izin verir)
+  function unlock(){ if(wantSound){ bgm.muted=false; bgm.play().catch(()=>{}); } window.removeEventListener('pointerdown',unlock,true); window.removeEventListener('keydown',unlock,true); }
+  window.addEventListener('pointerdown',unlock,true); window.addEventListener('keydown',unlock,true);   // ilk etkileşimde sesi aç
+  btn.addEventListener('click',(e)=>{ e.stopPropagation(); wantSound=!wantSound; if(wantSound){ bgm.muted=false; bgm.play().catch(()=>{}); } else { bgm.muted=true; } icon(); });
+  vol.addEventListener('input',()=>{ bgm.volume=vol.value/100; if(wantSound){ bgm.muted=false; bgm.play().catch(()=>{}); } });
+  icon();
 })();
 </script>
 </body>
